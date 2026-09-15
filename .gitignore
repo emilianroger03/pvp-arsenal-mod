@@ -1,0 +1,19 @@
+# Gradle
+.gradle/
+build/
+out/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Runtime
+run/
+logs/
+
+# OS
+.DS_Store
+Thumbs.db

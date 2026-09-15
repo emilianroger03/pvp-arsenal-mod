@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "pvparsenal",
+  "version": "${version}",
+  "name": "PvP Arsenal",
+  "description": "Two OP PvP weapons: Vision (position swap rod) and Time Clock (slow-mo enemies).",
+  "authors": ["Emilian"],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/pvparsenal/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.emilian.pvparsenal.PvpArsenal"]
+  },
+  "mixins": [],
+  "depends": {
+    "fabricloader": ">=0.19.0",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

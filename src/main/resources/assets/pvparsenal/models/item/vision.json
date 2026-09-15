@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:item/fishing_rod",
+  "textures": {
+    "layer0": "pvparsenal:item/vision"
+  },
+  "overrides": [
+    {
+      "predicate": { "cast": 1 },
+      "model": "pvparsenal:item/vision_cast"
+    }
+  ]
+}
