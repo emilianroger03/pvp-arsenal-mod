@@ -12,7 +12,7 @@
   "entrypoints": {
     "main": ["com.emilian.pvparsenal.PvpArsenal"]
   },
-  "mixins": [],
+  "mixins": ["pvparsenal.mixins.json"],
   "depends": {
     "fabricloader": ">=0.19.0",
     "minecraft": "~1.21.11",

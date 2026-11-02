@@ -1,7 +1,6 @@
 package com.emilian.pvparsenal.item;
 
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
+import com.emilian.pvparsenal.TimeSlowManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -23,10 +22,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class TimeClockItem extends Item {
-    private static final int EFFECT_DURATION_TICKS = 30 * 20; // 30 seconds
-    private static final int COOLDOWN_TICKS = 60 * 20; // 60 seconds
+    private static final int EFFECT_DURATION_TICKS = 30 * 20;
+    private static final int COOLDOWN_TICKS = 60 * 20;
     private static final double EFFECT_RADIUS = 50.0;
-    private static final int SLOWNESS_AMPLIFIER = 5; // Slowness VI = ~0.25x speed
 
     private static final Map<UUID, Long> lastUsedTick = new HashMap<>();
 
@@ -36,11 +34,10 @@ public class TimeClockItem extends Item {
 
     @Override
     public ActionResult use(World world, PlayerEntity user, Hand hand) {
-        if (world.isClient) {
+        if (!(world instanceof ServerWorld serverWorld)) {
             return ActionResult.SUCCESS;
         }
 
-        ServerWorld serverWorld = (ServerWorld) world;
         ServerPlayerEntity player = (ServerPlayerEntity) user;
         long currentTick = world.getTime();
 
@@ -64,9 +61,27 @@ public class TimeClockItem extends Item {
 
         if (nearest.isPresent()) {
             ServerPlayerEntity target = nearest.get();
-            applyTimeSlow(player, target, serverWorld);
+
+            long endTick = currentTick + EFFECT_DURATION_TICKS;
+            TimeSlowManager.applySlow(target.getUuid(), endTick);
+
             lastUsedTick.put(player.getUuid(), currentTick);
             player.getItemCooldownManager().set(this.getDefaultStack(), COOLDOWN_TICKS);
+
+            serverWorld.playSound(null, player.getBlockPos(), SoundEvents.BLOCK_RESPAWN_ANCHOR_DEPLETE.value(),
+                    SoundCategory.PLAYERS, 1.0f, 0.5f);
+            serverWorld.spawnParticles(ParticleTypes.LARGE_SMOKE, target.getX(), target.getY() + 1, target.getZ(),
+                    40, 0.5, 1.0, 0.5, 0.02);
+
+            player.sendMessage(
+                    Text.literal("Time slowed for " + target.getName().getString() + "!")
+                            .formatted(Formatting.GOLD),
+                    true);
+            target.sendMessage(
+                    Text.literal("Time has been slowed around you...")
+                            .formatted(Formatting.DARK_PURPLE),
+                    true);
+
             return ActionResult.SUCCESS;
         }
 
@@ -75,30 +90,5 @@ public class TimeClockItem extends Item {
                         .formatted(Formatting.GRAY),
                 true);
         return ActionResult.FAIL;
-    }
-
-    private void applyTimeSlow(ServerPlayerEntity player, ServerPlayerEntity target, ServerWorld world) {
-        target.addStatusEffect(new StatusEffectInstance(
-                StatusEffects.SLOWNESS, EFFECT_DURATION_TICKS, SLOWNESS_AMPLIFIER, false, true, true));
-        target.addStatusEffect(new StatusEffectInstance(
-                StatusEffects.MINING_FATIGUE, EFFECT_DURATION_TICKS, 3, false, true, true));
-
-        player.addStatusEffect(new StatusEffectInstance(
-                StatusEffects.SPEED, EFFECT_DURATION_TICKS, 1, false, false, true));
-
-        world.playSound(null, player.getBlockPos(), SoundEvents.BLOCK_RESPAWN_ANCHOR_DEPLETE.value(),
-                SoundCategory.PLAYERS, 1.0f, 0.5f);
-
-        world.spawnParticles(ParticleTypes.END_ROD, target.getX(), target.getY() + 1, target.getZ(),
-                40, 0.5, 1.0, 0.5, 0.02);
-
-        player.sendMessage(
-                Text.literal("Time slowed for " + target.getName().getString() + "!")
-                        .formatted(Formatting.GOLD),
-                true);
-        target.sendMessage(
-                Text.literal("Time has been slowed around you...")
-                        .formatted(Formatting.DARK_PURPLE),
-                true);
     }
 }
